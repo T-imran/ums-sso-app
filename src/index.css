@@ -1,0 +1,116 @@
+:root {
+  --bg:
+    radial-gradient(circle at top, rgba(218, 119, 69, 0.16), transparent 30%),
+    linear-gradient(180deg, #f3ede4 0%, #efe4d8 42%, #e6dccf 100%);
+  --panel: rgba(255, 250, 245, 0.84);
+  --surface-alt: rgba(255, 255, 255, 0.75);
+  --border: rgba(22, 30, 46, 0.1);
+  --border-strong: rgba(22, 30, 46, 0.2);
+  --text: #504c45;
+  --muted: #7d766d;
+  --heading: #172033;
+  --accent: #bf5a2a;
+  --shadow: 0 22px 60px rgba(42, 27, 17, 0.12);
+  --sans:
+    'Segoe UI', 'Aptos', 'Trebuchet MS', 'Gill Sans', 'Helvetica Neue', sans-serif;
+  --mono: 'Cascadia Code', 'Consolas', monospace;
+
+  font-family: var(--sans);
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--text);
+  background: #efe7db;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 52px,
+      rgba(23, 32, 51, 0.025) 52px,
+      rgba(23, 32, 51, 0.025) 53px
+    );
+  opacity: 0.8;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--heading);
+  line-height: 1.05;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 5vw, 4.8rem);
+  letter-spacing: -0.06em;
+  max-width: 12ch;
+}
+
+h2 {
+  font-size: clamp(1.45rem, 3vw, 2.1rem);
+  letter-spacing: -0.04em;
+}
+
+h3 {
+  font-size: 1rem;
+}
+
+code,
+pre {
+  font-family: var(--mono);
+}
+
+#root {
+  width: min(1380px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+}
+
+@media (max-width: 720px) {
+  #root {
+    width: min(100% - 1rem, 1380px);
+    padding-top: 1rem;
+  }
+}

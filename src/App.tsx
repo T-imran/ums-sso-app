@@ -29,7 +29,8 @@ type ApiError = {
   message: string
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/ums'
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8081/iam-admin-service'
 const APP_SESSION_STORAGE_KEY = 'ums-auth-session'
 
 const initialLoginForm = {
@@ -39,7 +40,7 @@ const initialLoginForm = {
 
 function App() {
   const [route, setRoute] = useState<AppRoute>(() => getCurrentRoute())
-  const [session, setSession] = useState<AuthSession | null>(null)
+  const [session, setSession] = useState<AuthSession | null>(() => readSession(APP_SESSION_STORAGE_KEY))
   const [loginForm, setLoginForm] = useState(initialLoginForm)
   const [message, setMessage] = useState<string | null>(null)
   const [loadingLogin, setLoadingLogin] = useState(false)
@@ -51,10 +52,6 @@ function App() {
     window.addEventListener('popstate', syncRoute)
 
     return () => window.removeEventListener('popstate', syncRoute)
-  }, [])
-
-  useEffect(() => {
-    setSession(readSession(APP_SESSION_STORAGE_KEY))
   }, [])
 
   const loginHints = getLoginRequestHints()
@@ -77,6 +74,7 @@ function App() {
       setSession(nextSession)
       const redirected = redirectAfterLogin({
         username: loginForm.username,
+        tokenResponse: response,
       })
 
       setMessage(
@@ -374,7 +372,7 @@ function getLoginRequestHints() {
   }
 }
 
-function redirectAfterLogin(options: { username: string }) {
+function redirectAfterLogin(options: { username: string; tokenResponse: TokenResponse }) {
   const search = new URLSearchParams(window.location.search)
   const redirectUri = search.get('redirect_uri') ?? getReferrerCallbackUrl()
   const state = search.get('state')
@@ -384,6 +382,15 @@ function redirectAfterLogin(options: { username: string }) {
     const target = new URL(redirectUri, window.location.origin)
     target.searchParams.set('ums_login', 'success')
     target.searchParams.set('username', options.username)
+    target.searchParams.set('access_token', options.tokenResponse.access_token)
+    target.searchParams.set('refresh_token', options.tokenResponse.refresh_token)
+    target.searchParams.set('token_type', options.tokenResponse.token_type)
+    target.searchParams.set('scope', options.tokenResponse.scope ?? '')
+    target.searchParams.set('expires_in', String(options.tokenResponse.expires_in ?? 0))
+    target.searchParams.set(
+      'refresh_expires_in',
+      String(options.tokenResponse.refresh_expires_in ?? 0),
+    )
 
     if (clientId) {
       target.searchParams.set('client_id', clientId)

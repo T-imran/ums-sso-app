@@ -162,97 +162,64 @@ function AuthPageShell(props: {
 }) {
   return (
     <div className="login-page">
-      <section className="login-layout">
-        <aside className="login-brand-panel">
-          <div className="brand-lockup">
-            <p className="brand-badge">{props.badge}</p>
-            <h1>{props.title}</h1>
-            <p className="brand-copy">{props.subtitle}</p>
-          </div>
+      <div className="login-container">
+        <div className="login-logo">
+          <img 
+            src="https://basis.org.bd/public/images/logo/5f3ccda2cdc18ERA-Logo_New_Final.png" 
+            alt="ERA Infotech Logo" 
+          />
+        </div>
 
-          <div className="brand-request-card">
-            <span>{props.metaLabel}</span>
-            <strong>{props.metaValue}</strong>
-            <p>{props.sideNote}</p>
-          </div>
+        <h1 className="login-title">Welcome to ERA</h1>
+        <p className="login-subtitle">Sign in to your account</p>
 
-          <div className="brand-guidelines">
-            <p>Looks and behavior intentionally mirror a centralized Keycloak-style login entry.</p>
-            <p>Only the authentication form is shown here so connected apps can send users to one consistent screen.</p>
-          </div>
-        </aside>
-
-        <main className="login-card">
-          <div className="login-card-header">
-            <p className="login-kicker">Authentication</p>
-            <h2>{props.title}</h2>
-            <p className="login-support">Use your username and password to continue.</p>
-          </div>
-
-          <form className="login-form" onSubmit={props.onSubmit}>
-            <label>
-              Username or email
-              <input
-                value={props.form.username}
-                onChange={(event) =>
-                  props.onChange((current) => ({
-                    ...current,
-                    username: event.target.value,
-                  }))
-                }
-                placeholder="Enter your username"
-                autoComplete="username"
-                required
-              />
+        <form className="login-form" onSubmit={props.onSubmit}>
+          <div className="form-group">
+            <label htmlFor="username">
+              Username or Email
             </label>
+            <input
+              id="username"
+              value={props.form.username}
+              onChange={(event) =>
+                props.onChange((current) => ({
+                  ...current,
+                  username: event.target.value,
+                }))
+              }
+              placeholder="Enter your username"
+              autoComplete="username"
+              required
+            />
+          </div>
 
-            <label>
+          <div className="form-group">
+            <label htmlFor="password">
               Password
-              <input
-                type="password"
-                value={props.form.password}
-                onChange={(event) =>
-                  props.onChange((current) => ({
-                    ...current,
-                    password: event.target.value,
-                  }))
-                }
-                placeholder="Enter your password"
-                autoComplete="current-password"
-                required
-              />
             </label>
+            <input
+              id="password"
+              type="password"
+              value={props.form.password}
+              onChange={(event) =>
+                props.onChange((current) => ({
+                  ...current,
+                  password: event.target.value,
+                }))
+              }
+              placeholder="Enter your password"
+              autoComplete="current-password"
+              required
+            />
+          </div>
 
-            <button className="login-submit" type="submit" disabled={props.loading}>
-              {props.loading ? 'Authenticating...' : props.submitLabel}
-            </button>
-          </form>
+          <button className="login-submit" type="submit" disabled={props.loading}>
+            {props.loading ? 'Signing in...' : props.submitLabel}
+          </button>
+        </form>
 
-          {props.message && <p className="login-message">{props.message}</p>}
-
-          <section className="login-debug-card">
-            <h3>Redirect debug</h3>
-            <div className="login-debug-list">
-              <div>
-                <span>Client ID</span>
-                <strong>{props.debugInfo.clientId}</strong>
-              </div>
-              <div>
-                <span>Redirect URI</span>
-                <strong>{props.debugInfo.redirectUri ?? 'Missing redirect_uri query param'}</strong>
-              </div>
-              <div>
-                <span>State</span>
-                <strong>{props.debugInfo.state ?? 'Missing state query param'}</strong>
-              </div>
-              <div>
-                <span>Referrer origin</span>
-                <strong>{props.debugInfo.referrerOrigin ?? 'No browser referrer detected'}</strong>
-              </div>
-            </div>
-          </section>
-        </main>
-      </section>
+        {props.message && <p className="login-message">{props.message}</p>}
+      </div>
     </div>
   )
 }

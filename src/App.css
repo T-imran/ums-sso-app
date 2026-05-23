@@ -28,6 +28,38 @@
   margin: 0 1rem;
 }
 
+.client-selector {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.client-button {
+  border: 1px solid #d8e1ec;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  background: #f7faff;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #15314b;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.client-button:hover {
+  border-color: #7aa7d9;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 74, 153, 0.12);
+}
+
+.client-button-selected {
+  border-color: #0066cc;
+  background: #eaf4ff;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.14);
+}
+
 .login-logo {
   width: 100%;
   max-width: 180px;
@@ -239,6 +271,10 @@
 
   .login-form {
     gap: 1rem;
+  }
+
+  .client-selector {
+    grid-template-columns: 1fr;
   }
 
   .console-header,

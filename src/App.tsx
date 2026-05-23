@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import './App.css'
 
 type AppRoute = 'login' | 'console'
+type ClientAppId = 'ums-admin-app' | 'lms-app'
 
 type TokenResponse = {
   access_token: string
@@ -32,6 +33,22 @@ type ApiError = {
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8081/iam-admin-service'
 const APP_SESSION_STORAGE_KEY = 'ums-auth-session'
+const CLIENT_APP_CONFIG: Record<
+  ClientAppId,
+  {
+    label: string
+    redirectUri: string
+  }
+> = {
+  'ums-admin-app': {
+    label: 'UMS Admin App',
+    redirectUri: 'http://localhost:5174/auth/callback',
+  },
+  'lms-app': {
+    label: 'LMS App',
+    redirectUri: 'http://localhost:5175/auth/callback',
+  },
+}
 
 const initialLoginForm = {
   username: '',
@@ -42,6 +59,7 @@ function App() {
   const [route, setRoute] = useState<AppRoute>(() => getCurrentRoute())
   const [session, setSession] = useState<AuthSession | null>(() => readSession(APP_SESSION_STORAGE_KEY))
   const [loginForm, setLoginForm] = useState(initialLoginForm)
+  const [selectedClientId, setSelectedClientId] = useState<ClientAppId>(() => getInitialClientId())
   const [message, setMessage] = useState<string | null>(null)
   const [loadingLogin, setLoadingLogin] = useState(false)
 
@@ -54,7 +72,11 @@ function App() {
     return () => window.removeEventListener('popstate', syncRoute)
   }, [])
 
-  const loginHints = getLoginRequestHints()
+  useEffect(() => {
+    syncClientSelectionInUrl(selectedClientId)
+  }, [selectedClientId])
+
+  const loginHints = getLoginRequestHints(selectedClientId)
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -75,6 +97,7 @@ function App() {
       const redirected = redirectAfterLogin({
         username: loginForm.username,
         tokenResponse: response,
+        loginHints,
       })
 
       setMessage(
@@ -122,6 +145,8 @@ function App() {
             ? `After sign-in, users will return to ${loginHints.redirectUri}.`
             : 'No redirect URI was provided, so successful login goes to the internal UMS console.'
         }
+        selectedClientId={selectedClientId}
+        onSelectClient={setSelectedClientId}
         form={loginForm}
         onChange={setLoginForm}
         onSubmit={handleLogin}
@@ -152,6 +177,8 @@ function AuthPageShell(props: {
   metaLabel: string
   metaValue: string
   sideNote: string
+  selectedClientId: ClientAppId
+  onSelectClient: React.Dispatch<React.SetStateAction<ClientAppId>>
   form: typeof initialLoginForm
   onChange: React.Dispatch<React.SetStateAction<typeof initialLoginForm>>
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>
@@ -172,6 +199,27 @@ function AuthPageShell(props: {
 
         <h1 className="login-title">Welcome to ERA</h1>
         <p className="login-subtitle">Sign in to your account</p>
+
+        <div className="client-selector" aria-label="Select client application">
+          {(
+            Object.entries(CLIENT_APP_CONFIG) as Array<
+              [ClientAppId, (typeof CLIENT_APP_CONFIG)[ClientAppId]]
+            >
+          ).map(([clientId, config]) => {
+            const isSelected = props.selectedClientId === clientId
+
+            return (
+              <button
+                key={clientId}
+                type="button"
+                className={`client-button${isSelected ? ' client-button-selected' : ''}`}
+                onClick={() => props.onSelectClient(clientId)}
+              >
+                {config.label}
+              </button>
+            )
+          })}
+        </div>
 
         <form className="login-form" onSubmit={props.onSubmit}>
           <div className="form-group">
@@ -327,23 +375,28 @@ function navigateTo(path: string) {
   }
 }
 
-function getLoginRequestHints() {
-  const search = new URLSearchParams(window.location.search)
+function getLoginRequestHints(selectedClientId: ClientAppId) {
   const referrer = getReferrerDetails()
+  const clientConfig = CLIENT_APP_CONFIG[selectedClientId]
+  const search = new URLSearchParams(window.location.search)
 
   return {
-    clientId: search.get('client_id') ?? 'ums-client',
-    redirectUri: search.get('redirect_uri'),
+    clientId: selectedClientId,
+    redirectUri: clientConfig.redirectUri,
     state: search.get('state'),
     referrerOrigin: referrer?.origin ?? null,
   }
 }
 
-function redirectAfterLogin(options: { username: string; tokenResponse: TokenResponse }) {
+function redirectAfterLogin(options: {
+  username: string
+  tokenResponse: TokenResponse
+  loginHints: ReturnType<typeof getLoginRequestHints>
+}) {
   const search = new URLSearchParams(window.location.search)
-  const redirectUri = search.get('redirect_uri') ?? getReferrerCallbackUrl()
+  const redirectUri = options.loginHints.redirectUri ?? getReferrerCallbackUrl()
   const state = search.get('state')
-  const clientId = search.get('client_id')
+  const clientId = options.loginHints.clientId
 
   if (redirectUri) {
     const target = new URL(redirectUri, window.location.origin)
@@ -393,6 +446,32 @@ function getReferrerDetails() {
     return new URL(document.referrer)
   } catch {
     return null
+  }
+}
+
+function getInitialClientId(): ClientAppId {
+  const search = new URLSearchParams(window.location.search)
+  const requestedClientId = search.get('client_id')
+
+  if (requestedClientId === 'ums-admin-app' || requestedClientId === 'lms-app') {
+    return requestedClientId
+  }
+
+  return 'ums-admin-app'
+}
+
+function syncClientSelectionInUrl(selectedClientId: ClientAppId) {
+  const nextUrl = new URL(window.location.href)
+  const nextRedirectUri = CLIENT_APP_CONFIG[selectedClientId].redirectUri
+
+  nextUrl.searchParams.set('client_id', selectedClientId)
+  nextUrl.searchParams.set('redirect_uri', nextRedirectUri)
+
+  const nextPath = `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`
+  const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
+
+  if (nextPath !== currentPath) {
+    window.history.replaceState({}, '', nextPath)
   }
 }
 

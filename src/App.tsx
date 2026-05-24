@@ -99,12 +99,9 @@ function App() {
         tokenResponse: response,
         loginHints,
       })
-
-      setMessage(
-        redirected
-          ? 'Authenticated through the UMS realm.'
-          : 'Authenticated successfully, but no redirect target was provided.',
-      )
+      if (!redirected) {
+        setMessage(null)
+      }
     } catch (error) {
       setMessage(getErrorMessage(error))
     } finally {
